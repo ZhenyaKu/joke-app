@@ -1,48 +1,53 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, Fragment} from 'react';
 import {Text, ScrollView} from 'react-native';
 import {AppLayout} from '../../components/AppLayout';
 import {Divider} from '../../components/Divider';
 import {ListItem} from '../../components/ListItem';
 import {storage} from '../../utils/storage';
-import {FavIcon} from '../../components/Icons/index';
 import {historyScreenStyles} from './styles';
+import {IJoke} from '../TodayScreen/joke.interface';
 
 export const HistoryScreen = () => {
-  const [jokes, setJokes] = useState([]);
-  const [jokesHistory, setJokesHistory] = useState({});
+  const [jokesHistory, setJokesHistory] = useState<IJoke[]>([]);
 
   useEffect(() => {
-    const jokesHistoryItem = async () => {
+    const loadJokesFromStorage = async () => {
       const jokesHistoryFromStorage = await storage.getItem('jokesHistory');
       const jokesHistory = JSON.parse(jokesHistoryFromStorage || '[]');
-      setJokes(jokesHistory);
+
+      setJokesHistory(jokesHistory);
     };
-    jokesHistoryItem();
+
+    loadJokesFromStorage();
   }, []);
 
-  // const onToggle = (joke: any) => {
-  //   const updatedJokes = jokesHistory.map(j => {
-  //     if (j.joke === joke) {
-  //       return {joke, liked: !j.liked};
-  //     } else {
-  //       return j;
-  //     }
-  //   });
+  const onToggle = ({joke, liked}: IJoke) => {
+    const updatedJokes = jokesHistory.map(j => {
+      if (j.joke === joke) {
+        return {joke, liked: !liked};
+      } else {
+        return j;
+      }
+    });
 
-  //   setJokesHistory(updatedJokes);
-  //   storage.setItem('jokesHistory', updatedJokes);
-  // };
+    setJokesHistory(updatedJokes);
+    storage.setItem('jokesHistory', JSON.stringify(updatedJokes));
+  };
 
   return (
     <AppLayout title="History">
       <ScrollView>
-        {!jokes.length && <Text>Empty list</Text>}
-        {jokes.map(joke => (
-          <ListItem
-            joke={joke}
-            onPress={() => console.log()}
-            icon={<FavIcon width={48} height={48} />}
-          />
+        {!jokesHistory.length && (
+          <Text style={historyScreenStyles.text}>Empty list</Text>
+        )}
+        {jokesHistory.map((item, index) => (
+          <Fragment key={index}>
+            <ListItem
+              joke={item.joke || ''}
+              liked={item.liked}
+              onPress={() => onToggle(item)}
+            />
+          </Fragment>
         ))}
       </ScrollView>
       <Divider style={historyScreenStyles.divider} />

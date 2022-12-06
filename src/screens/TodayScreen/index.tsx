@@ -44,7 +44,7 @@ export const TodayScreen = (): JSX.Element => {
           await storage.setItem('joke', JSON.stringify(newJoke));
           await storage.setItem('lastJokeUpdate', new Date().toString());
 
-          if (!currentJoke) await updateJokesList(currentJoke);
+          if (currentJoke) await updateJokesList(currentJoke);
 
           currentJoke = newJoke;
         }
